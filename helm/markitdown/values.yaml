@@ -1,0 +1,86 @@
+# Default values for the markitdown chart.
+
+replicaCount: 1
+
+image:
+  # Set this to ghcr.io/<your-github-username-or-org>/markitdown-svc
+  repository: ghcr.io/CHANGE_ME/markitdown-svc
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Only needed if the GHCR package is private.
+# Create with:
+#   kubectl create secret docker-registry ghcr-creds \
+#     --docker-server=ghcr.io \
+#     --docker-username=<gh-username> \
+#     --docker-password=<gh-pat-with-read:packages> \
+#     -n <namespace>
+imagePullSecrets: []
+# imagePullSecrets:
+#   - name: ghcr-creds
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 8000
+
+# Config for talking to your local Ollama instance running the vision model
+ollama:
+  baseUrl: "http://ollama.ollama.svc.cluster.local:11434/v1"
+  visionModel: "qwen2.5vl:7b"
+  apiKey: "ollama"
+
+# Toggle markitdown-ocr and other plugins
+enablePlugins: true
+
+# Reject uploads larger than this (MB)
+maxUploadMb: 100
+
+# Extra raw environment variables, e.g.:
+# extraEnv:
+#   - name: SOME_VAR
+#     value: "some-value"
+extraEnv: []
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 20
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: markitdown.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []

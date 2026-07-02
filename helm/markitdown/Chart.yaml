@@ -1,0 +1,14 @@
+apiVersion: v2
+name: markitdown
+description: HTTP conversion service wrapping Microsoft MarkItDown (PDF/Office/OCR/audio) for use in n8n pipelines
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - markitdown
+  - n8n
+  - ocr
+  - document-conversion
+home: https://github.com/microsoft/markitdown
+maintainers:
+  - name: your-name

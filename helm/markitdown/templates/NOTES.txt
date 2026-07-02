@@ -1,0 +1,14 @@
+markitdown-svc has been deployed.
+
+In-cluster URL (use this from n8n's HTTP Request node):
+
+  http://{{ include "markitdown.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/convert
+
+Health check:
+
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "markitdown.fullname" . }} 8000:{{ .Values.service.port }}
+  curl http://localhost:8000/health
+
+Test a conversion:
+
+  curl -X POST -F "file=@/path/to/file.pdf" http://localhost:8000/convert
