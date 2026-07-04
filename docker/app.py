@@ -3,6 +3,7 @@ import tempfile
 import logging
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from markitdown import MarkItDown
 from openai import OpenAI
 
@@ -11,9 +12,13 @@ logger = logging.getLogger("markitdown-svc")
 
 app = FastAPI(title="markitdown-svc")
 
-OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://ollama.ollama.svc.cluster.local:11434/v1")
+OLLAMA_BASE_URL = os.environ.get(
+    "OLLAMA_BASE_URL", "http://ollama.ollama.svc.cluster.local:11434/v1"
+)
 OLLAMA_VISION_MODEL = os.environ.get("OLLAMA_VISION_MODEL", "qwen2.5vl:7b")
-OLLAMA_API_KEY = os.environ.get("OLLAMA_API_KEY", "ollama")  # value is ignored by Ollama, required by the SDK
+OLLAMA_API_KEY = os.environ.get(
+    "OLLAMA_API_KEY", "ollama"
+)  # value is ignored by Ollama, required by the SDK
 ENABLE_PLUGINS = os.environ.get("ENABLE_PLUGINS", "true").lower() == "true"
 MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "100"))
 
@@ -27,7 +32,9 @@ md = MarkItDown(
 
 logger.info(
     "markitdown-svc starting | ollama_base_url=%s vision_model=%s plugins=%s",
-    OLLAMA_BASE_URL, OLLAMA_VISION_MODEL, ENABLE_PLUGINS,
+    OLLAMA_BASE_URL,
+    OLLAMA_VISION_MODEL,
+    ENABLE_PLUGINS,
 )
 
 
@@ -41,7 +48,9 @@ async def convert(file: UploadFile = File(...)):
     contents = await file.read()
     size_mb = len(contents) / (1024 * 1024)
     if size_mb > MAX_UPLOAD_MB:
-        raise HTTPException(status_code=413, detail=f"File exceeds {MAX_UPLOAD_MB}MB limit")
+        raise HTTPException(
+            status_code=413, detail=f"File exceeds {MAX_UPLOAD_MB}MB limit"
+        )
 
     suffix = os.path.splitext(file.filename or "")[1]
     tmp_path = None
@@ -50,7 +59,7 @@ async def convert(file: UploadFile = File(...)):
             tmp.write(contents)
             tmp_path = tmp.name
 
-        result = md.convert(tmp_path)
+        result = await run_in_threadpool(md.convert, tmp_path)
         return {
             "filename": file.filename,
             "markdown": result.text_content,
