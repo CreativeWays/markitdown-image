@@ -4,7 +4,7 @@ replicaCount: 1
 
 image:
   # Set this to ghcr.io/<your-github-username-or-org>/markitdown-svc
-  repository: ghcr.io/CHANGE_ME/markitdown-svc
+  repository: ghcr.io/creativeways/markitdown-image
   tag: latest
   pullPolicy: IfNotPresent
 
@@ -23,13 +23,14 @@ nameOverride: ""
 fullnameOverride: ""
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 8000
+  nodePort: 5243
 
 # Config for talking to your local Ollama instance running the vision model
 ollama:
-  baseUrl: "http://ollama.ollama.svc.cluster.local:11434/v1"
-  visionModel: "qwen2.5vl:7b"
+  baseUrl: "http://192.168.0.111:11434/v1"
+  visionModel: "qwen-16k"
   apiKey: "ollama"
 
 # Toggle markitdown-ocr and other plugins
@@ -74,13 +75,3 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 10
 
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  hosts:
-    - host: markitdown.local
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
